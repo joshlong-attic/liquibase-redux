@@ -2,8 +2,11 @@ package com.example.liquibase;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
+import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.core.RowMapper;
@@ -24,10 +27,17 @@ public class LiquibaseApplication {
     public static void main(String[] args) {
         SpringApplication.run(LiquibaseApplication.class, args);
     }
+
+    @Bean
+    @DependsOnDatabaseInitialization
+    ApplicationRunner runner(ArticleService service) {
+        return args -> service.findAll().forEach(System.out::println);
+    }
 }
 
 
 interface ArticleService {
+
     Set<Article> findAll();
 
     Article createDraft(String title, Date authored);
@@ -62,16 +72,16 @@ class JdbcArticleService implements ArticleService {
 
     private final JdbcTemplate jdbcTemplate;
     private final String selectSql = """
-          select 
-            a.id as aid, 
-            a.authored as authored ,  
-            a.title as title, 
-            c.comment, 
-            c.id as cid    
-            from articles a  
-            left join comments c 
-            on a.id = c.article_id  
-            """;
+            select 
+              a.id as aid, 
+              a.authored as authored ,  
+              a.title as title, 
+              c.comment, 
+              c.id as cid    
+              from articles a  
+              left join comments c 
+              on a.id = c.article_id  
+              """;
 
     @Override
     public Set<Article> findAll() {
