@@ -13,6 +13,9 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <rollback>
+            <dropTable tableName="articles"/>
+        </rollback>
     </changeSet>
     <changeSet author="jlong (generated)" id="1645413835101-2">
         <createTable tableName="comments">
@@ -24,6 +27,9 @@
             </column>
             <column name="article_id" type="BIGINT"/>
         </createTable>
+        <rollback>
+            <dropTable tableName="comments"/>
+        </rollback>
     </changeSet>
     <changeSet author="jlong (generated)" id="1645413835101-3">
         <addForeignKeyConstraint baseColumnNames="article_id" baseTableName="comments" constraintName="article_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="articles" validate="true"/>
