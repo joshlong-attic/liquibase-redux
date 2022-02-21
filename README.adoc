@@ -84,7 +84,6 @@ mvn liquibase:generateChangeLog
 
 The result will be in `src/main/resources/db/changelog/generated.xml`. Inspect it and you'll see it's created discrete actions and represented them (very verbosely) using XML. Rename
 `generated.xml` to `src/main/resources/db/changelog/changelog-v1.0.xml`. Spring Boot will automatically pick up the changelogs from `src/main/resources/db/changelog/db.changelog-master.xml`, so let's add an `include` directive to include `changelog-v1.0.xml`.
-
 [source,xml,indent=0]
 ----
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
@@ -92,6 +91,8 @@ The result will be in `src/main/resources/db/changelog/generated.xml`. Inspect i
    <include file="db/changelog/changelog-v1.0.xml"/>
 </databaseChangeLog>
 ----
+
+Alternatively, you could add everything from inside the outer most tag of `changelog-v1.0.xml` and add it to the body of `changelog.xml`, foregoing the  includes. This can be nice if you want to see everything in one place. It's also, I think, easier to follow the story if you're doing SQL formatted changelogs, which we'll explore momentarily.
 
 When Spring Boot starts, it will read this changelog and apply it to the Spring Boot `DataSource`. Youll need to specify the values used to connect to that `DataSource` in the Spring Boot environment. The easiest way to specify these values in a development environment is  `application.properties`:
 
@@ -112,7 +113,9 @@ The Spring Boot application connects to the development database by default.
 
 == Making a Change
 
-Let's suppose we want to evolve the database schema, perhaps by adding a new column. There are two different ways to handle this: we could drive with the Liquibase changelogs, or we could derive the Liquibase chagelogs.  If we drive with Liquibase, then we evolve the database through additions to the Liquibase changelog. If we derive with Liquibase, then we evolve the database through additions to the SQL schema itself and we capture those changes as Liquibase changelogs. Either way, the result is that we should have a durable way to recover, enforce, and rollback that change to the schema. Let's first drive the changes with the Liquibase migration. Create a new file, `src/main/resources/db/changelog/changelog-v1.1.xml` with the following contents:
+Let's suppose we want to evolve the database schema, perhaps by adding a new column. There are two different ways to handle this: we could drive with the Liquibase changelogs, or we could derive the Liquibase chagelogs.  If we drive with Liquibase, then we evolve the database through additions to the Liquibase changelog. If we derive with Liquibase, then we evolve the database through additions to the SQL schema itself and we capture those changes as Liquibase changelogs. Either way, the result is that we should have a durable way to recover, enforce, and rollback that change to the schema. Let's first drive the changes with the Liquibase migration.
+
+Create a new file, `src/main/resources/db/changelog/changelog-v1.1.xml` with the following contents:
 
 
 [source,xml,indent=0]
@@ -161,7 +164,7 @@ Here, we've specified the original database (which is the baseline) and the upda
 mvn liquibase:diff
 ----
 
-Liquibase writes out a change log in whatever path you've specified for `diffChangeLogFile`. Inspect the file and you'll see its virtually the same as  (but not indentical to) the changeset we wrote out by hand earlier. Rename the file to `src/main/resources/db/changelog/changelog-v1.2.xml`. Update `db.changelog-master.xml` to _not_ include `changelog-v1.1.xml` but to include both `changelog-v1.0.xml` and `changelog-v1.1.xml`.
+Liquibase writes out a change log in whatever path you've specified for `diffChangeLogFile`. Inspect the file and you'll see its virtually the same as  (but not indentical to) the changeset we wrote out by hand earlier. Rename the file to `src/main/resources/db/changelog/changelog-v1.2.xml`. Update `changelog.xml` to _not_ include `changelog-v1.1.xml` but to include both `changelog-v1.0.xml` and `changelog-v1.1.xml`.
 
 
 Now, the next time you run the Spring Boot application, Liquibase will attempt to teach that database all the new changes. When you next deploy your application to production, you'll have captured all the database migrations and they'll be applied automatically.
@@ -171,21 +174,20 @@ Now, the next time you run the Spring Boot application, Liquibase will attempt t
 
 == Rolling Back
 
-In the last example, we added a new column in an `addColumn` changeset. What happens if we want to back out of some changes to the schema. What if something's gone wrong and it won't work and we just need to know if our application has any hope of successfully running in production in again? We can always use Liquibase to _rollback_ changes made to the database schema. There are a number of ways to carve out which changelogs  look at an dundo, but the easiest is to simply rollback the last, latest, changelog.
+In the last example, we added a new column in an `addColumn` changeset. What happens if we want to back out of some changes to the schema. What if something's gone wrong and it won't work and we just need to know if our application has any hope of successfully running in production in again? We can always use Liquibase to _rollback_ changes made to the database schema. There are  a number of different ways to select which changeset rollbacks we apply, but the easiest is to simply execute `N` of the latest changeset rollbacks, like this:
+
 
 [source,shell,indent=0]
 ----
 mvn liquibase:rollback -Dliquibase.rollbackCount=1
 ----
 
-The `rollbackCount` number is arbitrary. I've chosen to simply rollback the very latest and last changleog.
+The `rollbackCount` number is arbitrary. I've chosen to simply rollback the very latest changeset.
 
 
-//  TODO test this
+Now, you should see that the new column, `published`, no longer exists. Remember, the Maven plugin applies its actions to whatever you've specified in the `liquibase.properties` for the `url` key.
 
-
-
-== Initializing a Bean Only After the Application's `DataSource` Has Been Initialized
+== Initializing a Bean Only After the Application's `DataSource` Has Been Initialized with Liquibase
 
 You may have work that you want to execute after the Spring Boot application has started up and _after_ the Liquibase
 database migration has finished. Annotate the bean with `@DependsOnDatabaseInitialization`, like this:

@@ -14,6 +14,7 @@
     <name>liquibase</name>
     <description>Demo project for Spring Boot</description>
     <properties>
+        <reflections.version>0.9.11</reflections.version>
         <java.version>17</java.version>
         <repackage.classifier/>
         <spring-native.version>0.11.2</spring-native.version>
@@ -22,6 +23,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.experimental</groupId>
+            <artifactId>spring-aot</artifactId>
+            <version>${spring-native.version}</version>
         </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
@@ -35,6 +41,11 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>${reflections.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
