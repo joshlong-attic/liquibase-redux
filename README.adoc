@@ -161,7 +161,7 @@ Here, we've specified the original database (which is the baseline) and the upda
 mvn liquibase:diff
 ----
 
-Liquibase writes out a change log in whatever path you've specified for `diffChangeLogFile`. Inspect the file and you'll see its virtually the same as  (but not indentical to) the changeset we wrote out by hand earlier. Rename the file to `src/main/resources/db/changelog/changelog-v1.2.xml`. Update `db.changelog-master.xml` to _not_ include `changelog-v1.1.xml` but to include both `changelog-v1.0.xml` and `changelog-v1.2.xml`.
+Liquibase writes out a change log in whatever path you've specified for `diffChangeLogFile`. Inspect the file and you'll see its virtually the same as  (but not indentical to) the changeset we wrote out by hand earlier. Rename the file to `src/main/resources/db/changelog/changelog-v1.2.xml`. Update `db.changelog-master.xml` to _not_ include `changelog-v1.1.xml` but to include both `changelog-v1.0.xml` and `changelog-v1.1.xml`.
 
 
 Now, the next time you run the Spring Boot application, Liquibase will attempt to teach that database all the new changes. When you next deploy your application to production, you'll have captured all the database migrations and they'll be applied automatically.
@@ -171,7 +171,7 @@ Now, the next time you run the Spring Boot application, Liquibase will attempt t
 
 == Rolling Back
 
-In the last example, we added a new column in an `addColumn` changeset. What happens if we want to back out of some changes to the schema. What if something's gone wrong and it won't work and we just need to know if our application has any hope of successfully running in production in again? We can always use Liquibase to _rollback_ changes made to the database schema. There are a number of ways to carve out which changelogs to look at an dundo, but the easiest is to simply rollback the last changelog.
+In the last example, we added a new column in an `addColumn` changeset. What happens if we want to back out of some changes to the schema. What if something's gone wrong and it won't work and we just need to know if our application has any hope of successfully running in production in again? We can always use Liquibase to _rollback_ changes made to the database schema. There are a number of ways to carve out which changelogs  look at an dundo, but the easiest is to simply rollback the last, latest, changelog.
 
 [source,shell,indent=0]
 ----
@@ -181,7 +181,7 @@ mvn liquibase:rollback -Dliquibase.rollbackCount=1
 The `rollbackCount` number is arbitrary. I've chosen to simply rollback the very latest and last changleog.
 
 
-
+//  TODO test this
 
 
 
